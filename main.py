@@ -23,7 +23,8 @@ snake = [(5, 5), (4, 5), (3, 5)]
 direction = (1, 0)
 score = 0
 
-apples = [(33, 5), (15, 10), (7, 3), (20, 15), (5, 12)]
+apples_queue = [(33, 5), (15, 10), (7, 3), (20, 15), (5, 12)]
+current_apple = apples_queue.pop(0)
 
 def draw_cell(pos, color):
     x, y = pos
@@ -66,21 +67,26 @@ while running:
     ):
         game_end(f"Game Over! Punkte: {score}")
 
-    if new_head in apples:
-        apples.remove(new_head)
+    if new_head == current_apple:
         score += 1
+        if apples_queue:
+            current_apple = apples_queue.pop(0)
+        else:
+            current_apple = None
     else:
         snake.pop()
 
     snake.insert(0, new_head)
 
-    if not apples:
+    if current_apple is None:
         game_end(f"Gewonnen! Alle Äpfel gegessen. Punkte: {score}")
 
     for segment in snake:
         draw_cell(segment, GREEN)
-    for apple in apples:
-        draw_cell(apple, RED)
+
+    if current_apple:
+        draw_cell(current_apple, RED)
+
 
     text = font.render(f"Punkte: {score}", True, WHITE)
     screen.blit(text, (10, 10))
