@@ -44,19 +44,25 @@ running = True
 while running:
     clock.tick(FPS)
     screen.fill(BLACK)
+    direction_changed = False
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP and direction != (0, 1):
+        elif event.type == pygame.KEYDOWN and not direction_changed:
+            key = event.key
+            if (key == pygame.K_UP or key == pygame.K_w) and direction != (0, 1):
                 direction = (0, -1)
-            elif event.key == pygame.K_DOWN and direction != (0, -1):
+                direction_changed = True
+            elif (key == pygame.K_DOWN or key == pygame.K_s) and direction != (0, -1):
                 direction = (0, 1)
-            elif event.key == pygame.K_LEFT and direction != (1, 0):
+                direction_changed = True
+            elif (key == pygame.K_LEFT or key == pygame.K_a) and direction != (1, 0):
                 direction = (-1, 0)
-            elif event.key == pygame.K_RIGHT and direction != (-1, 0):
+                direction_changed = True
+            elif (key == pygame.K_RIGHT or key == pygame.K_d) and direction != (-1, 0):
                 direction = (1, 0)
+                direction_changed = True
 
     new_head = (snake[0][0] + direction[0], snake[0][1] + direction[1])
 
