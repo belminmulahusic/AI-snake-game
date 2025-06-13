@@ -9,8 +9,10 @@ GRID_WIDTH, GRID_HEIGHT = 40, 20
 SCREEN_WIDTH = CELL_SIZE * GRID_WIDTH
 SCREEN_HEIGHT = CELL_SIZE * GRID_HEIGHT
 
+
 class SnakeEnv(gym.Env):
     metadata = {"render_modes": ["human"], "render_fps": 10}
+    apple_positions = [(33, 5), (15, 10), (7, 3), (20, 15), (5, 13)]
 
     def __init__(self, render_mode=None):
         super(SnakeEnv, self).__init__()
@@ -28,8 +30,11 @@ class SnakeEnv(gym.Env):
         self.clock = None
 
         #Erstmal fixe Apfel Position
-        self.apple_queue = [(33, 5), (15, 10), (7, 3), (20, 15), (5, 13)]
+        self.apple_queue = self.apple_positions.copy()
         self.apple = None
+
+        self.reset()
+
 
     def spawn_apple(self):
         if self.apple_queue:
@@ -38,4 +43,16 @@ class SnakeEnv(gym.Env):
             self.apple = None
             self.done = True  
 
- 
+    def reset(self, seed=None, options=None):
+        super().reset(seed=seed)
+        self.snake = [(5, 5), (4, 5), (3, 5)]
+        self.direction = (1, 0)
+        self.apple_queue = self.apple_positions.copy()
+        self.spawn_apple()
+        self.done = False
+        return self._get_obs(), {}
+    
+    def close(self):
+        if self.window:
+            pygame.quit()
+            self.window = None
