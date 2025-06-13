@@ -17,31 +17,27 @@ class SnakeEnv(gym.Env):
     def __init__(self, render_mode=None):
         super(SnakeEnv, self).__init__()
 
-        self.action_space = spaces.Discrete(4)  
+        self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(
-            low=0,
-            high=2,
-            shape=(GRID_HEIGHT * GRID_WIDTH,),  
-            dtype=np.uint8
+            low=0, high=2, shape=(GRID_HEIGHT * GRID_WIDTH,), dtype=np.uint8
         )
 
         self.render_mode = render_mode
         self.window = None
         self.clock = None
 
-        #Erstmal fixe Apfel Position
+        # Erstmal fixe Apfel Position
         self.apple_queue = self.apple_positions.copy()
         self.apple = None
 
         self.reset()
-
 
     def spawn_apple(self):
         if self.apple_queue:
             self.apple = self.apple_queue.pop(0)
         else:
             self.apple = None
-            self.done = True  
+            self.done = True
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
@@ -51,7 +47,38 @@ class SnakeEnv(gym.Env):
         self.spawn_apple()
         self.done = False
         return self._get_obs(), {}
-    
+
+    def render(self):
+        if self.render_mode != "human":
+            return
+
+        if self.window is None:
+            pygame.init()
+            self.window = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+            self.clock = pygame.time.Clock()
+
+        self.window.fill((53, 53, 53))
+
+        for x, y in self.snake:
+            pygame.draw.rect(
+                self.window,
+                (120, 209, 142),
+                pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
+                border_radius=10,
+            )
+
+        if self.apple:
+            ax, ay = self.apple
+            pygame.draw.rect(
+                self.window,
+                (255, 80, 80),
+                pygame.Rect(ax * CELL_SIZE, ay * CELL_SIZE, CELL_SIZE, CELL_SIZE),
+                border_radius=15,
+            )
+
+        pygame.display.flip()
+        self.clock.tick(self.metadata["render_fps"])
+
     def close(self):
         if self.window:
             pygame.quit()
