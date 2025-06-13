@@ -49,9 +49,6 @@ class SnakeEnv(gym.Env):
         return self._get_obs(), {}
 
     def step(self, action):
-        if self.done:
-            return self._get_obs(), 0, True, False, {}
-
         dir_map = {0: (0, -1), 1: (1, 0), 2: (0, 1), 3: (-1, 0)}
         new_direction = dir_map[action]
 
@@ -77,19 +74,31 @@ class SnakeEnv(gym.Env):
             or new_head[1] >= GRID_HEIGHT
         ):
             self.done = True
-            return self._get_obs(), 0, True, False, {}
+            return self._get_obs(), -1, True, False, {}
+
+        dist_old = abs(self.apple[0] - head[0]) + abs(self.apple[1] - head[1])
+        dist_new = abs(self.apple[0] - new_head[0]) + abs(self.apple[1] - new_head[1])
+
+        reward = 0.005
 
         if new_head == self.apple:
             self.snake.insert(0, new_head)
+            reward += 1.0
             self.spawn_apple()
         else:
             self.snake.insert(0, new_head)
             self.snake.pop()
 
+            if dist_new < dist_old:
+                reward += 0.1
+            elif dist_new > dist_old:
+                reward -= 0.05
+
         if self.apple is None:
             self.done = True
+            reward += 1.0
 
-        return self._get_obs(), 0, self.done, False, {}
+        return self._get_obs(), reward, self.done, False, {}
 
     def _get_obs(self):
         obs = np.zeros((GRID_HEIGHT, GRID_WIDTH), dtype=np.uint8)
