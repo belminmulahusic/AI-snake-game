@@ -44,6 +44,7 @@ class SnakeEnv(gym.Env):
         self.snake = [(5, 5), (4, 5), (3, 5)]
         self.direction = (1, 0)
         self.apple_queue = self.apple_positions.copy()
+        self.steps = 0
         self.spawn_apple()
         self.done = False
         return self._get_obs(), {}
