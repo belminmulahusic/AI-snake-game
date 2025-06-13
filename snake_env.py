@@ -48,6 +48,57 @@ class SnakeEnv(gym.Env):
         self.done = False
         return self._get_obs(), {}
 
+    def step(self, action):
+        if self.done:
+            return self._get_obs(), 0, True, False, {}
+
+        dir_map = {0: (0, -1), 1: (1, 0), 2: (0, 1), 3: (-1, 0)}
+        new_direction = dir_map[action]
+
+        # Kein Zurückgehen erlauben
+        if (new_direction[0] * -1, new_direction[1] * -1) == self.direction and len(
+            self.snake
+        ) > 1:
+            new_direction = self.direction
+        else:
+            self.direction = new_direction
+
+        head = self.snake[0]
+        new_head = (head[0] + self.direction[0], head[1] + self.direction[1])
+
+        self.steps += 1
+
+        # Kollision mit Wand oder sich selbst
+        if (
+            new_head in self.snake
+            or new_head[0] < 0
+            or new_head[0] >= GRID_WIDTH
+            or new_head[1] < 0
+            or new_head[1] >= GRID_HEIGHT
+        ):
+            self.done = True
+            return self._get_obs(), 0, True, False, {}
+
+        if new_head == self.apple:
+            self.snake.insert(0, new_head)
+            self.spawn_apple()
+        else:
+            self.snake.insert(0, new_head)
+            self.snake.pop()
+
+        if self.apple is None:
+            self.done = True
+
+        return self._get_obs(), 0, self.done, False, {}
+
+    def _get_obs(self):
+        obs = np.zeros((GRID_HEIGHT, GRID_WIDTH), dtype=np.uint8)
+        for x, y in self.snake:
+            obs[y, x] = 1
+        if self.apple:
+            obs[self.apple[1], self.apple[0]] = 2
+        return obs.flatten()
+
     def render(self):
         if self.render_mode != "human":
             return
