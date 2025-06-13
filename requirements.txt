@@ -1,3 +1,4 @@
 gymnasium
 numpy
 pygame==2.5.2
+stable_baselines3
