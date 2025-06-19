@@ -1,8 +1,9 @@
+from stable_baselines3.common.env_checker import check_env
 from stable_baselines3 import DQN
 from snake_env import SnakeEnv
 
 env = SnakeEnv()
-
+check_env(env)
 model = DQN(
     "MlpPolicy",
     env,
