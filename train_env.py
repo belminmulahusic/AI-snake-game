@@ -6,6 +6,6 @@ env = SnakeEnv()
 check_env(env)
 
 model = DQN("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=200000)
+model.learn(total_timesteps=5000)
 model.save("dqn_snake_model")
 env.close()
