@@ -4,8 +4,8 @@ import numpy as np
 import pygame
 import random
 
-CELL_SIZE = 20
-GRID_WIDTH, GRID_HEIGHT = 50, 50
+CELL_SIZE = 15
+GRID_WIDTH, GRID_HEIGHT = 30, 30
 
 SCREEN_WIDTH = CELL_SIZE * GRID_WIDTH
 SCREEN_HEIGHT = CELL_SIZE * GRID_HEIGHT
@@ -43,12 +43,12 @@ OBSTACLE_PATTERNS = [
 class SnakeEnv(gym.Env):
     metadata = {"render_modes": ["human"], "render_fps": 30}
 
-    def __init__(self, render_mode=None, num_obstacles=15):
+    def __init__(self, render_mode=None, num_obstacles=10):
         super(SnakeEnv, self).__init__()
 
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(
-            low=0, high=1, shape=(12,), dtype=np.uint8
+            low=0, high=1, shape=(13,), dtype=np.float32
         )
 
         self.render_mode = render_mode
@@ -191,7 +191,7 @@ class SnakeEnv(gym.Env):
             self.direction == (1, 0),
             self.direction == (0, 1),
             self.direction == (-1, 0),
-        ], dtype=np.uint8)
+        ], dtype=np.float32)
 
         up = (head[0], head[1] - 1)
         right = (head[0] + 1, head[1])
@@ -203,7 +203,7 @@ class SnakeEnv(gym.Env):
             self._is_collision(right),
             self._is_collision(down),
             self._is_collision(left),
-        ], dtype=np.uint8)
+        ], dtype=np.float32)
 
         if self.apple is not None:
             food_vec = np.array([
@@ -211,11 +211,13 @@ class SnakeEnv(gym.Env):
                 self.apple[0] > head[0],
                 self.apple[1] > head[1],
                 self.apple[0] < head[0],
-            ], dtype=np.uint8)
+            ], dtype=np.float32)
         else:
-            food_vec = np.zeros(4, dtype=np.uint8)
-
-        obs = np.concatenate((dir_vec, danger_vec, food_vec))
+            food_vec = np.zeros(4, dtype=np.float32)
+        snake_length_norm = len(self.snake) / (GRID_WIDTH * GRID_HEIGHT)
+        snake_length_vec = np.array([snake_length_norm], dtype=np.float32)
+        
+        obs = np.concatenate((dir_vec, danger_vec, food_vec, snake_length_vec))
         return obs
 
     def render(self):
