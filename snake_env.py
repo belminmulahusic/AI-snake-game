@@ -43,12 +43,12 @@ OBSTACLE_PATTERNS = [
 class SnakeEnv(gym.Env):
     metadata = {"render_modes": ["human"], "render_fps": 30}
 
-    def __init__(self, render_mode=None, num_obstacles=10):
+    def __init__(self, render_mode=None, num_obstacles=8):
         super(SnakeEnv, self).__init__()
 
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(
-            low=0, high=1, shape=(13,), dtype=np.float32
+            low=0, high=1, shape=(57,), dtype=np.float32
         )
 
         self.render_mode = render_mode
@@ -80,12 +80,14 @@ class SnakeEnv(gym.Env):
         return all_blocks
 
     def spawn_apple(self):
+        all_obstacle_blocks = self._get_all_obstacle_blocks()
+        all_occupied = set(self.snake).union(all_obstacle_blocks)
         while True:
             self.apple = (
                 random.randint(0, GRID_WIDTH - 1),
                 random.randint(0, GRID_HEIGHT - 1),
             )
-            if self.apple not in self.snake:
+            if self.apple not in all_occupied:
                 break
 
     def generate_obstacles(self):
@@ -194,17 +196,17 @@ class SnakeEnv(gym.Env):
             self.direction == (-1, 0),
         ], dtype=np.float32)
 
-        up = (head[0], head[1] - 1)
-        right = (head[0] + 1, head[1])
-        down = (head[0], head[1] + 1)
-        left = (head[0] - 1, head[1])
-        
-        danger_vec = np.array([
-            self._is_collision(up),
-            self._is_collision(right),
-            self._is_collision(down),
-            self._is_collision(left),
-        ], dtype=np.float32)
+#        up = (head[0], head[1] - 1)
+#        right = (head[0] + 1, head[1])
+#        down = (head[0], head[1] + 1)
+#        left = (head[0] - 1, head[1])
+#        
+#        danger_vec = np.array([
+#            self._is_collision(up),
+#            self._is_collision(right),
+#            self._is_collision(down),
+#            self._is_collision(left),
+#        ], dtype=np.float32)
 
         if self.apple is not None:
             food_vec = np.array([
@@ -218,7 +220,26 @@ class SnakeEnv(gym.Env):
         snake_length_norm = len(self.snake) / (GRID_WIDTH * GRID_HEIGHT)
         snake_length_vec = np.array([snake_length_norm], dtype=np.float32)
         
-        obs = np.concatenate((dir_vec, danger_vec, food_vec, snake_length_vec))
+        fov = []
+        for dy in [-1, 0, 1, -2, 2, -3, 3]:
+            for dx in [-1, 0, 1, -2, 2, -3, 3]:
+                if dx == 0 and dy == 0:
+                    continue 
+                
+                check_x, check_y = head[0] + dx, head[1] + dy
+                
+                is_dangerous = 0
+
+                if self._is_collision((check_x, check_y)):
+                    is_dangerous = 1
+                else:
+                    is_dangerous = 0
+
+                fov.append(is_dangerous)
+
+        fov_vec = np.array(fov, dtype=np.float32)
+        
+        obs = np.concatenate((dir_vec, food_vec, snake_length_vec, fov_vec))
         return obs
 
     def render(self):
