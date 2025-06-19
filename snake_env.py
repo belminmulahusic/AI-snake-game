@@ -10,11 +10,40 @@ GRID_WIDTH, GRID_HEIGHT = 50, 50
 SCREEN_WIDTH = CELL_SIZE * GRID_WIDTH
 SCREEN_HEIGHT = CELL_SIZE * GRID_HEIGHT
 
+OBSTACLE_COLOR = (100, 100, 100) 
+
+OBSTACLE_PATTERNS = [
+    # L-Formen
+    [(0, 0), (1, 0), (0, 1)], 
+    [(0, 0), (-1, 0), (0, 1)],
+    [(0, 0), (1, 0), (0, -1)],
+    [(0, 0), (-1, 0), (0, -1)],
+    [(0, 0), (0, 1), (1, 1)],
+    [(0, 0), (0, 1), (-1, 1)],
+    [(0, 0), (0, -1), (1, -1)],
+    [(0, 0), (0, -1), (-1, -1)],
+    [(0, 0), (1, 0), (0, 1), (0, 2)], 
+    [(0, 0), (-1, 0), (0, 1), (0, 2)],
+    [(0, 0), (1, 0), (0, -1), (0, -2)],
+    [(0, 0), (-1, 0), (0, -1), (0, -2)],
+    [(0, 0), (0, 1), (1, 1), (1, 2)],
+    [(0, 0), (0, 1), (-1, 1), (-1, 2)],
+    [(0, 0), (0, -1), (1, -1), (1, -2)],
+    [(0, 0), (0, -1), (-1, -1), (-1, -2)],
+
+    # Gerade Blöcke
+    [(0, 0), (1, 0)],
+    [(0, 0), (0, 1)],
+    
+    # 2x2 Blöcke
+    [(0, 0), (1, 0), (0, 1), (1, 1)],
+]
+
 
 class SnakeEnv(gym.Env):
     metadata = {"render_modes": ["human"], "render_fps": 30}
 
-    def __init__(self, render_mode=None):
+    def __init__(self, render_mode=None, num_obstacles=15):
         super(SnakeEnv, self).__init__()
 
         self.action_space = spaces.Discrete(4)
@@ -27,8 +56,28 @@ class SnakeEnv(gym.Env):
         self.clock = None
 
         self.apple = None
+        self.obstacles = []
+        self.num_obstacles = num_obstacles
 
         self.reset()
+
+
+    def reset(self, seed=None, options=None):
+        super().reset(seed=seed)
+        self.snake = [(5, 5), (4, 5), (3, 5)]
+        self.direction = (1, 0)
+        self.steps = 0
+        self.spawn_apple()
+        self.generate_obstacles()
+        self.done = False
+        return self._get_obs(), {}
+
+
+    def _get_all_obstacle_blocks(self):
+        all_blocks = []
+        for obstacle in self.obstacles:
+            all_blocks.extend(obstacle)
+        return all_blocks
 
     def spawn_apple(self):
         while True:
@@ -39,14 +88,38 @@ class SnakeEnv(gym.Env):
             if self.apple not in self.snake:
                 break
 
-    def reset(self, seed=None, options=None):
-        super().reset(seed=seed)
-        self.snake = [(5, 5), (4, 5), (3, 5)]
-        self.direction = (1, 0)
-        self.steps = 0
-        self.spawn_apple()
-        self.done = False
-        return self._get_obs(), {}
+    def generate_obstacles(self):
+        self.obstacles = []
+        all_existing_occupied = set(self.snake + [self.apple])
+        
+        while len(self.obstacles) < self.num_obstacles:
+            
+            pattern = random.choice(OBSTACLE_PATTERNS)
+            
+            start_x = random.randint(0, GRID_WIDTH - 1)
+            start_y = random.randint(0, GRID_HEIGHT - 1)
+            
+            potential_obstacle = []
+            is_valid_placement = True
+
+            for rel_x, rel_y in pattern:
+                abs_x, abs_y = start_x + rel_x, start_y + rel_y
+                block_coord = (abs_x, abs_y)
+                
+                
+                if (
+                    abs_x < 0 or abs_x >= GRID_WIDTH or
+                    abs_y < 0 or abs_y >= GRID_HEIGHT or
+                    block_coord in all_existing_occupied
+                ):
+                    is_valid_placement = False
+                    break
+                potential_obstacle.append(block_coord)
+            
+            if is_valid_placement:
+                self.obstacles.append(potential_obstacle)
+                all_existing_occupied.update(potential_obstacle)
+
 
     def step(self, action):
         dir_map = {0: (0, -1), 1: (1, 0), 2: (0, 1), 3: (-1, 0)}
@@ -105,7 +178,9 @@ class SnakeEnv(gym.Env):
         
         if new_head in self.snake:
             return True
-        
+        for obstacle_blocks in self.obstacles:
+            if new_head in obstacle_blocks:
+                return True
         return False
 
     def _get_obs(self):
@@ -170,6 +245,15 @@ class SnakeEnv(gym.Env):
                 pygame.Rect(ax * CELL_SIZE, ay * CELL_SIZE, CELL_SIZE, CELL_SIZE),
                 border_radius=15,
             )
+
+        for obstacle_blocks in self.obstacles:
+            for ox, oy in obstacle_blocks:
+                pygame.draw.rect(
+                    self.window,
+                    OBSTACLE_COLOR,
+                    pygame.Rect(ox * CELL_SIZE, oy * CELL_SIZE, CELL_SIZE, CELL_SIZE),
+                    border_radius=5,
+                )
 
         pygame.display.flip()
         self.clock.tick(self.metadata["render_fps"])
