@@ -14,3 +14,6 @@
 
 ### Alle Äpfel eingesammelt
 +1
+
+### Nach jedem erfolgreichen Schritt
++0.005
