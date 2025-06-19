@@ -2,6 +2,7 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 import pygame
+import random
 
 CELL_SIZE = 20
 GRID_WIDTH, GRID_HEIGHT = 50, 50
@@ -12,7 +13,6 @@ SCREEN_HEIGHT = CELL_SIZE * GRID_HEIGHT
 
 class SnakeEnv(gym.Env):
     metadata = {"render_modes": ["human"], "render_fps": 30}
-    apple_positions = [(33, 5), (15, 10), (7, 3), (20, 15), (5, 13)]
 
     def __init__(self, render_mode=None):
         super(SnakeEnv, self).__init__()
@@ -26,24 +26,23 @@ class SnakeEnv(gym.Env):
         self.window = None
         self.clock = None
 
-        # Erstmal fixe Apfel Position
-        self.apple_queue = self.apple_positions.copy()
         self.apple = None
 
         self.reset()
 
     def spawn_apple(self):
-        if self.apple_queue:
-            self.apple = self.apple_queue.pop(0)
-        else:
-            self.apple = None
-            self.done = True
+        while True:
+            self.apple = (
+                random.randint(0, GRID_WIDTH - 1),
+                random.randint(0, GRID_HEIGHT - 1),
+            )
+            if self.apple not in self.snake:
+                break
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
         self.snake = [(5, 5), (4, 5), (3, 5)]
         self.direction = (1, 0)
-        self.apple_queue = self.apple_positions.copy()
         self.steps = 0
         self.spawn_apple()
         self.done = False
