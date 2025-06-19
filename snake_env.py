@@ -4,8 +4,8 @@ import numpy as np
 import pygame
 import random
 
-CELL_SIZE = 20
-GRID_WIDTH, GRID_HEIGHT = 50, 50
+CELL_SIZE = 15
+GRID_WIDTH, GRID_HEIGHT = 30, 30
 
 SCREEN_WIDTH = CELL_SIZE * GRID_WIDTH
 SCREEN_HEIGHT = CELL_SIZE * GRID_HEIGHT
@@ -43,22 +43,21 @@ OBSTACLE_PATTERNS = [
 class SnakeEnv(gym.Env):
     metadata = {"render_modes": ["human"], "render_fps": 30}
 
-    def __init__(self, render_mode=None, num_obstacles=15):
+    def __init__(self, render_mode=None, num_obstacles=8):
         super(SnakeEnv, self).__init__()
 
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(
-            low=0, high=1, shape=(12,), dtype=np.uint8
+            low=0, high=1, shape=(57,), dtype=np.float32
         )
 
         self.render_mode = render_mode
         self.window = None
         self.clock = None
-
+        self.font = None
         self.apple = None
         self.obstacles = []
         self.num_obstacles = num_obstacles
-
         self.reset()
 
 
@@ -67,6 +66,7 @@ class SnakeEnv(gym.Env):
         self.snake = [(5, 5), (4, 5), (3, 5)]
         self.direction = (1, 0)
         self.steps = 0
+        self.score = 0
         self.spawn_apple()
         self.generate_obstacles()
         self.done = False
@@ -80,12 +80,14 @@ class SnakeEnv(gym.Env):
         return all_blocks
 
     def spawn_apple(self):
+        all_obstacle_blocks = self._get_all_obstacle_blocks()
+        all_occupied = set(self.snake).union(all_obstacle_blocks)
         while True:
             self.apple = (
                 random.randint(0, GRID_WIDTH - 1),
                 random.randint(0, GRID_HEIGHT - 1),
             )
-            if self.apple not in self.snake:
+            if self.apple not in all_occupied:
                 break
 
     def generate_obstacles(self):
@@ -152,6 +154,7 @@ class SnakeEnv(gym.Env):
         
         if new_head == self.apple:
             reward += 1.0
+            self.score += 1
             self.spawn_apple()
         else:
             self.snake.pop()
@@ -191,19 +194,19 @@ class SnakeEnv(gym.Env):
             self.direction == (1, 0),
             self.direction == (0, 1),
             self.direction == (-1, 0),
-        ], dtype=np.uint8)
+        ], dtype=np.float32)
 
-        up = (head[0], head[1] - 1)
-        right = (head[0] + 1, head[1])
-        down = (head[0], head[1] + 1)
-        left = (head[0] - 1, head[1])
-        
-        danger_vec = np.array([
-            self._is_collision(up),
-            self._is_collision(right),
-            self._is_collision(down),
-            self._is_collision(left),
-        ], dtype=np.uint8)
+#        up = (head[0], head[1] - 1)
+#        right = (head[0] + 1, head[1])
+#        down = (head[0], head[1] + 1)
+#        left = (head[0] - 1, head[1])
+#        
+#        danger_vec = np.array([
+#            self._is_collision(up),
+#            self._is_collision(right),
+#            self._is_collision(down),
+#            self._is_collision(left),
+#        ], dtype=np.float32)
 
         if self.apple is not None:
             food_vec = np.array([
@@ -211,11 +214,32 @@ class SnakeEnv(gym.Env):
                 self.apple[0] > head[0],
                 self.apple[1] > head[1],
                 self.apple[0] < head[0],
-            ], dtype=np.uint8)
+            ], dtype=np.float32)
         else:
-            food_vec = np.zeros(4, dtype=np.uint8)
+            food_vec = np.zeros(4, dtype=np.float32)
+        snake_length_norm = len(self.snake) / (GRID_WIDTH * GRID_HEIGHT)
+        snake_length_vec = np.array([snake_length_norm], dtype=np.float32)
+        
+        fov = []
+        for dy in [-1, 0, 1, -2, 2, -3, 3]:
+            for dx in [-1, 0, 1, -2, 2, -3, 3]:
+                if dx == 0 and dy == 0:
+                    continue 
+                
+                check_x, check_y = head[0] + dx, head[1] + dy
+                
+                is_dangerous = 0
 
-        obs = np.concatenate((dir_vec, danger_vec, food_vec))
+                if self._is_collision((check_x, check_y)):
+                    is_dangerous = 1
+                else:
+                    is_dangerous = 0
+
+                fov.append(is_dangerous)
+
+        fov_vec = np.array(fov, dtype=np.float32)
+        
+        obs = np.concatenate((dir_vec, food_vec, snake_length_vec, fov_vec))
         return obs
 
     def render(self):
@@ -226,6 +250,7 @@ class SnakeEnv(gym.Env):
             pygame.init()
             self.window = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
             self.clock = pygame.time.Clock()
+            self.font = pygame.font.SysFont("arial", 20)
 
         self.window.fill((53, 53, 53))
 
@@ -254,6 +279,9 @@ class SnakeEnv(gym.Env):
                     pygame.Rect(ox * CELL_SIZE, oy * CELL_SIZE, CELL_SIZE, CELL_SIZE),
                     border_radius=5,
                 )
+        
+        score_text = self.font.render(f"Score: {self.score}", True, (255, 255, 255))
+        self.window.blit(score_text, (5, 5))
 
         pygame.display.flip()
         self.clock.tick(self.metadata["render_fps"])

@@ -3,7 +3,7 @@ from stable_baselines3 import DQN
 from snake_env import SnakeEnv
 
 def test_model(model_path):
-    env = SnakeEnv(render_mode="human")
+    env = SnakeEnv()
     model = DQN.load(model_path)
     
     obs, info = env.reset()
@@ -14,7 +14,7 @@ def test_model(model_path):
         action = int(action)
         obs, reward, done, truncated, info = env.step(action)
         env.render()
-        print(reward)
+    print(f"Spiel beendet. End-Score: {env.score}")
     env.close()
 
 if __name__ == "__main__":
