@@ -54,11 +54,10 @@ class SnakeEnv(gym.Env):
         self.render_mode = render_mode
         self.window = None
         self.clock = None
-
+        self.font = None
         self.apple = None
         self.obstacles = []
         self.num_obstacles = num_obstacles
-
         self.reset()
 
 
@@ -67,6 +66,7 @@ class SnakeEnv(gym.Env):
         self.snake = [(5, 5), (4, 5), (3, 5)]
         self.direction = (1, 0)
         self.steps = 0
+        self.score = 0
         self.spawn_apple()
         self.generate_obstacles()
         self.done = False
@@ -152,6 +152,7 @@ class SnakeEnv(gym.Env):
         
         if new_head == self.apple:
             reward += 1.0
+            self.score += 1
             self.spawn_apple()
         else:
             self.snake.pop()
@@ -228,6 +229,7 @@ class SnakeEnv(gym.Env):
             pygame.init()
             self.window = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
             self.clock = pygame.time.Clock()
+            self.font = pygame.font.SysFont("arial", 20)
 
         self.window.fill((53, 53, 53))
 
@@ -256,6 +258,9 @@ class SnakeEnv(gym.Env):
                     pygame.Rect(ox * CELL_SIZE, oy * CELL_SIZE, CELL_SIZE, CELL_SIZE),
                     border_radius=5,
                 )
+        
+        score_text = self.font.render(f"Score: {self.score}", True, (255, 255, 255))
+        self.window.blit(score_text, (5, 5))
 
         pygame.display.flip()
         self.clock.tick(self.metadata["render_fps"])
