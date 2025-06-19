@@ -4,14 +4,14 @@ import numpy as np
 import pygame
 
 CELL_SIZE = 20
-GRID_WIDTH, GRID_HEIGHT = 40, 20
+GRID_WIDTH, GRID_HEIGHT = 50, 50
 
 SCREEN_WIDTH = CELL_SIZE * GRID_WIDTH
 SCREEN_HEIGHT = CELL_SIZE * GRID_HEIGHT
 
 
 class SnakeEnv(gym.Env):
-    metadata = {"render_modes": ["human"], "render_fps": 10}
+    metadata = {"render_modes": ["human"], "render_fps": 30}
     apple_positions = [(33, 5), (15, 10), (7, 3), (20, 15), (5, 13)]
 
     def __init__(self, render_mode=None):
@@ -19,7 +19,7 @@ class SnakeEnv(gym.Env):
 
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(
-            low=0, high=2, shape=(GRID_HEIGHT * GRID_WIDTH,), dtype=np.uint8
+            low=0, high=1, shape=(12,), dtype=np.uint8
         )
 
         self.render_mode = render_mode
@@ -67,32 +67,26 @@ class SnakeEnv(gym.Env):
         self.steps += 1
 
         # Kollision mit Wand oder sich selbst
-        if (
-            new_head in self.snake
-            or new_head[0] < 0
-            or new_head[0] >= GRID_WIDTH
-            or new_head[1] < 0
-            or new_head[1] >= GRID_HEIGHT
-        ):
+        if self._is_collision(new_head):
             self.done = True
-            return self._get_obs(), -1, True, False, {}
+            return self._get_obs(), -1.0, True, False, {}
 
         dist_old = abs(self.apple[0] - head[0]) + abs(self.apple[1] - head[1])
         dist_new = abs(self.apple[0] - new_head[0]) + abs(self.apple[1] - new_head[1])
 
         reward = 0.005
 
+        self.snake.insert(0, new_head)
+        
         if new_head == self.apple:
-            self.snake.insert(0, new_head)
             reward += 1.0
             self.spawn_apple()
         else:
-            self.snake.insert(0, new_head)
             self.snake.pop()
 
             if dist_new < dist_old:
                 reward += 0.1
-            elif dist_new > dist_old:
+            else:
                 reward -= 0.05
 
         if self.apple is None:
@@ -101,13 +95,54 @@ class SnakeEnv(gym.Env):
 
         return self._get_obs(), reward, self.done, False, {}
 
+    def _is_collision(self, new_head):
+        if (
+            new_head[0] < 0
+            or new_head[0] >= GRID_WIDTH
+            or new_head[1] < 0
+            or new_head[1] >= GRID_HEIGHT
+        ):
+            return True
+        
+        if new_head in self.snake:
+            return True
+        
+        return False
+
     def _get_obs(self):
-        obs = np.zeros((GRID_HEIGHT, GRID_WIDTH), dtype=np.uint8)
-        for x, y in self.snake:
-            obs[y, x] = 1
-        if self.apple:
-            obs[self.apple[1], self.apple[0]] = 2
-        return obs.flatten()
+        head = self.snake[0]
+
+        dir_vec = np.array([
+            self.direction == (0, -1),
+            self.direction == (1, 0),
+            self.direction == (0, 1),
+            self.direction == (-1, 0),
+        ], dtype=np.uint8)
+
+        up = (head[0], head[1] - 1)
+        right = (head[0] + 1, head[1])
+        down = (head[0], head[1] + 1)
+        left = (head[0] - 1, head[1])
+        
+        danger_vec = np.array([
+            self._is_collision(up),
+            self._is_collision(right),
+            self._is_collision(down),
+            self._is_collision(left),
+        ], dtype=np.uint8)
+
+        if self.apple is not None:
+            food_vec = np.array([
+                self.apple[1] < head[1],
+                self.apple[0] > head[0],
+                self.apple[1] > head[1],
+                self.apple[0] < head[0],
+            ], dtype=np.uint8)
+        else:
+            food_vec = np.zeros(4, dtype=np.uint8)
+
+        obs = np.concatenate((dir_vec, danger_vec, food_vec))
+        return obs
 
     def render(self):
         if self.render_mode != "human":
