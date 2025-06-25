@@ -60,6 +60,12 @@ class SnakeEnv(gym.Env):
         self.num_obstacles = num_obstacles
         self.reset()
 
+    def is_too_close(self, new_obstacle, existing_obstacles, min_distance=2):
+        for x1, y1 in new_obstacle:
+            for x2, y2 in existing_obstacles:
+                if abs(x1 - x2) <= min_distance and abs(y1 - y2) <= min_distance:
+                    return True
+        return False
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
@@ -95,11 +101,11 @@ class SnakeEnv(gym.Env):
         all_existing_occupied = set(self.snake + [self.apple])
         
         while len(self.obstacles) < self.num_obstacles:
+            margin = 3
             
             pattern = random.choice(OBSTACLE_PATTERNS)
-            
-            start_x = random.randint(0, GRID_WIDTH - 1)
-            start_y = random.randint(0, GRID_HEIGHT - 1)
+            start_x = random.randint(0, GRID_WIDTH - margin - 1)
+            start_y = random.randint(0, GRID_HEIGHT - margin - 1)
             
             potential_obstacle = []
             is_valid_placement = True
@@ -110,15 +116,15 @@ class SnakeEnv(gym.Env):
                 
                 
                 if (
-                    abs_x < 0 or abs_x >= GRID_WIDTH or
-                    abs_y < 0 or abs_y >= GRID_HEIGHT or
+                    abs_x < margin or abs_x >= GRID_WIDTH - margin or
+                    abs_y < margin or abs_y >= GRID_HEIGHT - margin or
                     block_coord in all_existing_occupied
                 ):
                     is_valid_placement = False
                     break
                 potential_obstacle.append(block_coord)
             
-            if is_valid_placement:
+            if is_valid_placement and not self.is_too_close(potential_obstacle, self._get_all_obstacle_blocks()):
                 self.obstacles.append(potential_obstacle)
                 all_existing_occupied.update(potential_obstacle)
 
