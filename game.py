@@ -17,9 +17,11 @@ BACKGROUND_IMAGE_PATH = "assets/background.png"
 
 def play():
     env = SnakeEnv(render_mode="human")
+    model = DQN.load("dqn_snake_model")
     obs, info = env.reset()
     done = False
     current_action = 1
+    use_ai = False
 
     while not done:
         for event in pygame.event.get():
@@ -27,24 +29,32 @@ def play():
                 done = True
                 return "quit"
             if event.type == pygame.KEYDOWN:
-                action = None
-                if event.key in (pygame.K_UP, pygame.K_w):
-                    action = 0
-                elif event.key in (pygame.K_RIGHT, pygame.K_d):
-                    action = 1
-                elif event.key in (pygame.K_DOWN, pygame.K_s):
-                    action = 2
-                elif event.key in (pygame.K_LEFT, pygame.K_a):
-                    action = 3
+                if event.key == pygame.K_SPACE:
+                    use_ai = not use_ai
+                if not use_ai:
+                    action = None
+                    if event.key in (pygame.K_UP, pygame.K_w):
+                        action = 0
+                    elif event.key in (pygame.K_RIGHT, pygame.K_d):
+                        action = 1
+                    elif event.key in (pygame.K_DOWN, pygame.K_s):
+                        action = 2
+                    elif event.key in (pygame.K_LEFT, pygame.K_a):
+                        action = 3
 
-                if action is not None:
-                    current_action = action
+                    if action is not None:
+                        current_action = action
+
+        if use_ai:
+            action, _states = model.predict(obs, deterministic=True)
+            current_action = int(action)
 
         obs, reward, done, truncated, info = env.step(current_action)
-        if not done:
-            env.render()
+
+        env.render(game_mode="User" if use_ai else " AI")
 
     env.close()
+
 
 
 def test_model(model_path="dqn_snake_model"):
@@ -58,7 +68,7 @@ def test_model(model_path="dqn_snake_model"):
         action, _states = model.predict(obs, deterministic=True)
         action = int(action)
         obs, reward, done, truncated, info = env.step(action)
-        env.render()
+        env.render(game_mode="none")
 
     print(f"Spiel beendet. End-Score: {env.score}")
     env.close()

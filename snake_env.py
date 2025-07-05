@@ -10,6 +10,7 @@ GRID_WIDTH, GRID_HEIGHT = 40, 40
 SCREEN_WIDTH = CELL_SIZE * GRID_WIDTH
 SCREEN_HEIGHT = CELL_SIZE * GRID_HEIGHT
 OFFSET = 260
+FONT_PATH = "assets/VCR_OSD_MONO_1.001.ttf"
 
 OBSTACLE_COLOR = (100, 100, 100) 
 
@@ -42,7 +43,7 @@ OBSTACLE_PATTERNS = [
 
 
 class SnakeEnv(gym.Env):
-    metadata = {"render_modes": ["human"], "render_fps": 8}
+    metadata = {"render_modes": ["human"], "render_fps": 10}
 
     def __init__(self, render_mode=None, num_obstacles=8):
         super(SnakeEnv, self).__init__()
@@ -243,7 +244,7 @@ class SnakeEnv(gym.Env):
         obs = np.concatenate((dir_vec, food_vec, snake_length_vec, fov_vec))
         return obs
 
-    def render(self):
+    def render(self, game_mode):
         if self.render_mode != "human":
             return
 
@@ -251,11 +252,14 @@ class SnakeEnv(gym.Env):
             pygame.init()
             self.window = pygame.display.set_mode((SCREEN_WIDTH + OFFSET, SCREEN_HEIGHT))
             self.clock = pygame.time.Clock()
-            self.font = pygame.font.SysFont("arial", 20)
+            try:
+                self.font = pygame.font.Font(FONT_PATH, 30)
+            except FileNotFoundError:
+                self.font = pygame.font.SysFont("arial", 30)
 
         self.window.fill((53, 53, 53))
-        pygame.draw.rect(self.window, (0, 0, 150), pygame.Rect(0, 0, OFFSET, SCREEN_HEIGHT))
-
+        pygame.draw.rect(self.window, (64, 64, 64), pygame.Rect(0, 0, OFFSET, SCREEN_HEIGHT))
+        pygame.draw.rect(self.window, (48, 48, 48), pygame.Rect(OFFSET-20, 0, 20, SCREEN_HEIGHT))
 
         for x, y in self.snake:
             pygame.draw.rect(
@@ -282,12 +286,23 @@ class SnakeEnv(gym.Env):
                     pygame.Rect(ox * CELL_SIZE + OFFSET, oy * CELL_SIZE, CELL_SIZE, CELL_SIZE),
                     border_radius=5,
                 )
-        
+                
         score_text = self.font.render(f"Score: {self.score}", True, (255, 255, 255))
-        self.window.blit(score_text, (5, 5))
+        self.window.blit(score_text, (42, 370))
+
+        if game_mode != "none":
+            lines = [
+                "Press 'SPACE'",
+                " to enable ",
+                f" {game_mode}-mode"
+            ]
+            for i, line in enumerate(lines):
+                info_msg = self.font.render(line, True, (255, 255, 255))
+                self.window.blit(info_msg, (7, 20 + i * 30))
 
         pygame.display.flip()
         self.clock.tick(self.metadata["render_fps"])
+
 
     def close(self):
         if self.window:
