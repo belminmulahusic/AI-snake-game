@@ -95,21 +95,21 @@ class SnakeEnv(gym.Env):
     def generate_obstacles(self):
             self.obstacles = []
             forbidden_zone = set()
-            clearance = 4
+            spawn_distance= 4
 
             for i in range(GRID_WIDTH):
-                for j in range(clearance):
+                for j in range(spawn_distance):
                     forbidden_zone.add((i, j))
                     forbidden_zone.add((i, GRID_HEIGHT - 1 - j))
 
             for i in range(GRID_HEIGHT):
-                for j in range(clearance):
+                for j in range(spawn_distance):
                     forbidden_zone.add((j, i))
                     forbidden_zone.add((GRID_WIDTH - 1 - j, i))
 
             for sx, sy in self.snake:
-                for dx in range(-clearance, clearance + 1):
-                    for dy in range(-clearance, clearance + 1):
+                for dx in range(-spawn_distance, spawn_distance + 1):
+                    for dy in range(-spawn_distance, spawn_distance + 1):
                         forbidden_zone.add((sx + dx, sy + dy))
 
             attempts = 0
@@ -137,15 +137,13 @@ class SnakeEnv(gym.Env):
                     self.obstacles.append(potential_obstacle)
 
                     for ox, oy in potential_obstacle:
-                        for dx in range(-clearance, clearance + 1):
-                            for dy in range(-clearance, clearance + 1):
+                        for dx in range(-spawn_distance, spawn_distance + 1):
+                            for dy in range(-spawn_distance, spawn_distance + 1):
                                 forbidden_zone.add((ox + dx, oy + dy))
                     attempts = 0
                 else:
                     attempts += 1
-                    
-            if attempts >= max_attempts:
-                print(f"Warnung: Konnte nach {max_attempts} Versuchen nicht alle {self.num_obstacles} Hindernisse platzieren.")
+
 
 
     def step(self, action):
