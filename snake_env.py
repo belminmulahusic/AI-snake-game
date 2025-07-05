@@ -42,7 +42,7 @@ OBSTACLE_PATTERNS = [
 
 
 class SnakeEnv(gym.Env):
-    metadata = {"render_modes": ["human"], "render_fps": 30}
+    metadata = {"render_modes": ["human"], "render_fps": 8}
 
     def __init__(self, render_mode=None, num_obstacles=8):
         super(SnakeEnv, self).__init__()

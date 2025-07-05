@@ -1,4 +1,5 @@
 import pygame
+from snake_env import SnakeEnv
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800
@@ -13,11 +14,45 @@ FONT_PATH = "assets/VCR_OSD_MONO_1.001.ttf"
 BACKGROUND_IMAGE_PATH = "assets/background.png"
 
 
-def main_menu():
-    pygame.init()
+def play():
+    env = SnakeEnv(render_mode="human")
+    obs, info = env.reset()
+    done = False
+    current_action = 1
+
+    while not done:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+                return "quit"
+            if event.type == pygame.KEYDOWN:
+                action = None
+                if event.key in (pygame.K_UP, pygame.K_w):
+                    action = 0
+                elif event.key in (pygame.K_RIGHT, pygame.K_d):
+                    action = 1
+                elif event.key in (pygame.K_DOWN, pygame.K_s):
+                    action = 2
+                elif event.key in (pygame.K_LEFT, pygame.K_a):
+                    action = 3
+
+                if action is not None:
+                    current_action = action
+
+        obs, reward, done, truncated, info = env.step(current_action)
+        if not done:
+            env.render()
+
+    env.close()
+
+
+def init_pygame():
+    if not pygame.get_init():
+        pygame.init()
+
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Snake Game")
-    
+
     try:
         font = pygame.font.Font(FONT_PATH, 50)
     except FileNotFoundError:
@@ -26,6 +61,11 @@ def main_menu():
     background_image = pygame.image.load(BACKGROUND_IMAGE_PATH).convert()
     background_image = pygame.transform.scale(background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
+    return screen, font, background_image
+
+
+def main_menu():
+    screen, font, background_image = init_pygame()
 
     play_button_rect = pygame.Rect(
         (SCREEN_WIDTH - BUTTON_WIDTH) // 2,
@@ -43,9 +83,9 @@ def main_menu():
     play_button_clicked = False
     ai_button_clicked = False
     running = True
-    
+
     while running:
-        mouse_pos = pygame.mouse.get_pos() 
+        mouse_pos = pygame.mouse.get_pos()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -54,6 +94,13 @@ def main_menu():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if play_button_rect.collidepoint(event.pos):
                     play_button_clicked = True
+                    game_result = play()
+
+                    if not pygame.display.get_init():
+                        screen, font, background_image = init_pygame()
+
+                    if game_result == "quit":
+                        running = False
                 elif ai_button_rect.collidepoint(event.pos):
                     ai_button_clicked = True
 
@@ -64,31 +111,26 @@ def main_menu():
         if background_image:
             screen.blit(background_image, (0, 0))
         else:
-            screen.fill(0, 0, 0)
+            screen.fill((0, 0, 0))
 
-        play_button_current_color = BUTTON_COLOR
-        if play_button_clicked:
-            play_button_current_color = CLICK_COLOR
-        elif play_button_rect.collidepoint(mouse_pos):
-            play_button_current_color = HOVER_COLOR
-        pygame.draw.rect(screen, play_button_current_color, play_button_rect, border_radius=10)
+        play_button_color = CLICK_COLOR if play_button_clicked else (
+            HOVER_COLOR if play_button_rect.collidepoint(mouse_pos) else BUTTON_COLOR
+        )
+        pygame.draw.rect(screen, play_button_color, play_button_rect, border_radius=10)
         play_text = font.render("Play", True, TEXT_COLOR)
-        play_text_rect = play_text.get_rect(center=play_button_rect.center)
-        screen.blit(play_text, play_text_rect)
+        screen.blit(play_text, play_text.get_rect(center=play_button_rect.center))
 
-        ai_button_current_color = BUTTON_COLOR
-        if ai_button_clicked:
-            ai_button_current_color = CLICK_COLOR
-        elif ai_button_rect.collidepoint(mouse_pos):
-            ai_button_current_color = HOVER_COLOR
-        pygame.draw.rect(screen, ai_button_current_color, ai_button_rect, border_radius=10)
+        ai_button_color = CLICK_COLOR if ai_button_clicked else (
+            HOVER_COLOR if ai_button_rect.collidepoint(mouse_pos) else BUTTON_COLOR
+        )
+        pygame.draw.rect(screen, ai_button_color, ai_button_rect, border_radius=10)
         ai_text = font.render("Run AI Model", True, TEXT_COLOR)
-        ai_text_rect = ai_text.get_rect(center=ai_button_rect.center)
-        screen.blit(ai_text, ai_text_rect)
+        screen.blit(ai_text, ai_text.get_rect(center=ai_button_rect.center))
 
         pygame.display.flip()
 
     pygame.quit()
+
 
 if __name__ == "__main__":
     main_menu()
