@@ -300,6 +300,25 @@ class SnakeEnv(gym.Env):
                 info_msg = self.font.render(line, True, (255, 255, 255))
                 self.window.blit(info_msg, (7, 20 + i * 30))
 
+        if self.done:
+            final_score_text = self.font.render(f"Final Score: {self.score}", True, (255, 255, 0))
+            text_rect = final_score_text.get_rect(center=((SCREEN_WIDTH // 2) + OFFSET, SCREEN_HEIGHT // 2))
+
+            padding = 10
+            background_rect = pygame.Rect(
+                text_rect.x - padding,
+                text_rect.y - padding + 2,
+                text_rect.width + 2 * padding,
+                text_rect.height + 2 * padding
+            )
+            
+            pygame.draw.rect(self.window, (5, 5, 5), background_rect, border_radius=10)
+            self.window.blit(final_score_text, text_rect)
+
+            pygame.display.flip()
+            pygame.time.wait(5000)
+            return
+
         pygame.display.flip()
         self.clock.tick(self.metadata["render_fps"])
 
