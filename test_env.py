@@ -3,7 +3,7 @@ from stable_baselines3 import DQN
 from snake_env import SnakeEnv
 
 def test_model(model_path):
-    env = SnakeEnv()
+    env = SnakeEnv(render_mode="human")
     model = DQN.load(model_path)
     
     obs, info = env.reset()

@@ -4,11 +4,13 @@ import numpy as np
 import pygame
 import random
 
-CELL_SIZE = 15
-GRID_WIDTH, GRID_HEIGHT = 30, 30
+CELL_SIZE = 20
+GRID_WIDTH, GRID_HEIGHT = 40, 40
 
 SCREEN_WIDTH = CELL_SIZE * GRID_WIDTH
 SCREEN_HEIGHT = CELL_SIZE * GRID_HEIGHT
+OFFSET = 260
+FONT_PATH = "assets/VCR_OSD_MONO_1.001.ttf"
 
 OBSTACLE_COLOR = (100, 100, 100) 
 
@@ -41,7 +43,7 @@ OBSTACLE_PATTERNS = [
 
 
 class SnakeEnv(gym.Env):
-    metadata = {"render_modes": ["human"], "render_fps": 30}
+    metadata = {"render_modes": ["human"], "render_fps": 10}
 
     def __init__(self, render_mode=None, num_obstacles=8):
         super(SnakeEnv, self).__init__()
@@ -242,23 +244,28 @@ class SnakeEnv(gym.Env):
         obs = np.concatenate((dir_vec, food_vec, snake_length_vec, fov_vec))
         return obs
 
-    def render(self):
+    def render(self, game_mode):
         if self.render_mode != "human":
             return
 
         if self.window is None:
             pygame.init()
-            self.window = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+            self.window = pygame.display.set_mode((SCREEN_WIDTH + OFFSET, SCREEN_HEIGHT))
             self.clock = pygame.time.Clock()
-            self.font = pygame.font.SysFont("arial", 20)
+            try:
+                self.font = pygame.font.Font(FONT_PATH, 30)
+            except FileNotFoundError:
+                self.font = pygame.font.SysFont("arial", 30)
 
         self.window.fill((53, 53, 53))
+        pygame.draw.rect(self.window, (64, 64, 64), pygame.Rect(0, 0, OFFSET, SCREEN_HEIGHT))
+        pygame.draw.rect(self.window, (48, 48, 48), pygame.Rect(OFFSET-20, 0, 20, SCREEN_HEIGHT))
 
         for x, y in self.snake:
             pygame.draw.rect(
                 self.window,
                 (120, 209, 142),
-                pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
+                pygame.Rect(x * CELL_SIZE + OFFSET, y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
                 border_radius=10,
             )
 
@@ -267,7 +274,7 @@ class SnakeEnv(gym.Env):
             pygame.draw.rect(
                 self.window,
                 (255, 80, 80),
-                pygame.Rect(ax * CELL_SIZE, ay * CELL_SIZE, CELL_SIZE, CELL_SIZE),
+                pygame.Rect(ax * CELL_SIZE + OFFSET, ay * CELL_SIZE, CELL_SIZE, CELL_SIZE),
                 border_radius=15,
             )
 
@@ -276,15 +283,45 @@ class SnakeEnv(gym.Env):
                 pygame.draw.rect(
                     self.window,
                     OBSTACLE_COLOR,
-                    pygame.Rect(ox * CELL_SIZE, oy * CELL_SIZE, CELL_SIZE, CELL_SIZE),
+                    pygame.Rect(ox * CELL_SIZE + OFFSET, oy * CELL_SIZE, CELL_SIZE, CELL_SIZE),
                     border_radius=5,
                 )
-        
+                
         score_text = self.font.render(f"Score: {self.score}", True, (255, 255, 255))
-        self.window.blit(score_text, (5, 5))
+        self.window.blit(score_text, (42, 370))
+
+        if game_mode != "none":
+            lines = [
+                "Press 'SPACE'",
+                " to enable ",
+                f" {game_mode}-mode"
+            ]
+            for i, line in enumerate(lines):
+                info_msg = self.font.render(line, True, (255, 255, 255))
+                self.window.blit(info_msg, (7, 20 + i * 30))
+
+        if self.done:
+            final_score_text = self.font.render(f"Final Score: {self.score}", True, (255, 255, 0))
+            text_rect = final_score_text.get_rect(center=((SCREEN_WIDTH // 2) + OFFSET, SCREEN_HEIGHT // 2))
+
+            padding = 10
+            background_rect = pygame.Rect(
+                text_rect.x - padding,
+                text_rect.y - padding + 2,
+                text_rect.width + 2 * padding,
+                text_rect.height + 2 * padding
+            )
+            
+            pygame.draw.rect(self.window, (5, 5, 5), background_rect, border_radius=10)
+            self.window.blit(final_score_text, text_rect)
+
+            pygame.display.flip()
+            pygame.time.wait(5000)
+            return
 
         pygame.display.flip()
         self.clock.tick(self.metadata["render_fps"])
+
 
     def close(self):
         if self.window:
