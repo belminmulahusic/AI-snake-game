@@ -1,4 +1,5 @@
 import pygame
+from stable_baselines3 import DQN
 from snake_env import SnakeEnv
 
 SCREEN_WIDTH = 800
@@ -43,6 +44,23 @@ def play():
         if not done:
             env.render()
 
+    env.close()
+
+
+def test_model(model_path="dqn_snake_model"):
+    env = SnakeEnv(render_mode="human")
+    model = DQN.load(model_path)
+
+    obs, info = env.reset()
+    done = False
+
+    while not done:
+        action, _states = model.predict(obs, deterministic=True)
+        action = int(action)
+        obs, reward, done, truncated, info = env.step(action)
+        env.render()
+
+    print(f"Spiel beendet. End-Score: {env.score}")
     env.close()
 
 
@@ -101,8 +119,13 @@ def main_menu():
 
                     if game_result == "quit":
                         running = False
+
                 elif ai_button_rect.collidepoint(event.pos):
                     ai_button_clicked = True
+                    test_model()
+
+                    if not pygame.display.get_init():
+                        screen, font, background_image = init_pygame()
 
             if event.type == pygame.MOUSEBUTTONUP:
                 play_button_clicked = False
