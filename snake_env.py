@@ -93,36 +93,57 @@ class SnakeEnv(gym.Env):
                 break
 
     def generate_obstacles(self):
-        self.obstacles = []
-        all_existing_occupied = set(self.snake + [self.apple])
-        
-        while len(self.obstacles) < self.num_obstacles:
-            
-            pattern = random.choice(OBSTACLE_PATTERNS)
-            
-            start_x = random.randint(0, GRID_WIDTH - 1)
-            start_y = random.randint(0, GRID_HEIGHT - 1)
-            
-            potential_obstacle = []
-            is_valid_placement = True
+            self.obstacles = []
+            forbidden_zone = set()
+            spawn_distance= 4
 
-            for rel_x, rel_y in pattern:
-                abs_x, abs_y = start_x + rel_x, start_y + rel_y
-                block_coord = (abs_x, abs_y)
+            for i in range(GRID_WIDTH):
+                for j in range(spawn_distance):
+                    forbidden_zone.add((i, j))
+                    forbidden_zone.add((i, GRID_HEIGHT - 1 - j))
+
+            for i in range(GRID_HEIGHT):
+                for j in range(spawn_distance):
+                    forbidden_zone.add((j, i))
+                    forbidden_zone.add((GRID_WIDTH - 1 - j, i))
+
+            for sx, sy in self.snake:
+                for dx in range(-spawn_distance, spawn_distance + 1):
+                    for dy in range(-spawn_distance, spawn_distance + 1):
+                        forbidden_zone.add((sx + dx, sy + dy))
+
+            attempts = 0
+            max_attempts = 2000
+
+            while len(self.obstacles) < self.num_obstacles and attempts < max_attempts:
+                pattern = random.choice(OBSTACLE_PATTERNS)
                 
+                start_x = random.randint(0, GRID_WIDTH - 1)
+                start_y = random.randint(0, GRID_HEIGHT - 1)
                 
-                if (
-                    abs_x < 0 or abs_x >= GRID_WIDTH or
-                    abs_y < 0 or abs_y >= GRID_HEIGHT or
-                    block_coord in all_existing_occupied
-                ):
-                    is_valid_placement = False
-                    break
-                potential_obstacle.append(block_coord)
-            
-            if is_valid_placement:
-                self.obstacles.append(potential_obstacle)
-                all_existing_occupied.update(potential_obstacle)
+                potential_obstacle = []
+                is_valid_placement = True
+
+                for rel_x, rel_y in pattern:
+                    abs_x, abs_y = start_x + rel_x, start_y + rel_y
+                    block_coord = (abs_x, abs_y)
+                    
+                    if block_coord in forbidden_zone:
+                        is_valid_placement = False
+                        break
+                    potential_obstacle.append(block_coord)
+                
+                if is_valid_placement:
+                    self.obstacles.append(potential_obstacle)
+
+                    for ox, oy in potential_obstacle:
+                        for dx in range(-spawn_distance, spawn_distance + 1):
+                            for dy in range(-spawn_distance, spawn_distance + 1):
+                                forbidden_zone.add((ox + dx, oy + dy))
+                    attempts = 0
+                else:
+                    attempts += 1
+
 
 
     def step(self, action):
