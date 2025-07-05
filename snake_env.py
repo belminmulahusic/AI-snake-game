@@ -4,11 +4,12 @@ import numpy as np
 import pygame
 import random
 
-CELL_SIZE = 15
-GRID_WIDTH, GRID_HEIGHT = 30, 30
+CELL_SIZE = 20
+GRID_WIDTH, GRID_HEIGHT = 40, 40
 
 SCREEN_WIDTH = CELL_SIZE * GRID_WIDTH
 SCREEN_HEIGHT = CELL_SIZE * GRID_HEIGHT
+OFFSET = 260
 
 OBSTACLE_COLOR = (100, 100, 100) 
 
@@ -248,17 +249,19 @@ class SnakeEnv(gym.Env):
 
         if self.window is None:
             pygame.init()
-            self.window = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+            self.window = pygame.display.set_mode((SCREEN_WIDTH + OFFSET, SCREEN_HEIGHT))
             self.clock = pygame.time.Clock()
             self.font = pygame.font.SysFont("arial", 20)
 
         self.window.fill((53, 53, 53))
+        pygame.draw.rect(self.window, (0, 0, 150), pygame.Rect(0, 0, OFFSET, SCREEN_HEIGHT))
+
 
         for x, y in self.snake:
             pygame.draw.rect(
                 self.window,
                 (120, 209, 142),
-                pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
+                pygame.Rect(x * CELL_SIZE + OFFSET, y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
                 border_radius=10,
             )
 
@@ -267,7 +270,7 @@ class SnakeEnv(gym.Env):
             pygame.draw.rect(
                 self.window,
                 (255, 80, 80),
-                pygame.Rect(ax * CELL_SIZE, ay * CELL_SIZE, CELL_SIZE, CELL_SIZE),
+                pygame.Rect(ax * CELL_SIZE + OFFSET, ay * CELL_SIZE, CELL_SIZE, CELL_SIZE),
                 border_radius=15,
             )
 
@@ -276,7 +279,7 @@ class SnakeEnv(gym.Env):
                 pygame.draw.rect(
                     self.window,
                     OBSTACLE_COLOR,
-                    pygame.Rect(ox * CELL_SIZE, oy * CELL_SIZE, CELL_SIZE, CELL_SIZE),
+                    pygame.Rect(ox * CELL_SIZE + OFFSET, oy * CELL_SIZE, CELL_SIZE, CELL_SIZE),
                     border_radius=5,
                 )
         
