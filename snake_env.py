@@ -15,30 +15,25 @@ FONT_PATH = "assets/VCR_OSD_MONO_1.001.ttf"
 OBSTACLE_COLOR = (100, 100, 100) 
 
 OBSTACLE_PATTERNS = [
-    # L-Formen
-    [(0, 0), (1, 0), (0, 1)], 
-    [(0, 0), (-1, 0), (0, 1)],
-    [(0, 0), (1, 0), (0, -1)],
-    [(0, 0), (-1, 0), (0, -1)],
-    [(0, 0), (0, 1), (1, 1)],
-    [(0, 0), (0, 1), (-1, 1)],
-    [(0, 0), (0, -1), (1, -1)],
-    [(0, 0), (0, -1), (-1, -1)],
-    [(0, 0), (1, 0), (0, 1), (0, 2)], 
-    [(0, 0), (-1, 0), (0, 1), (0, 2)],
-    [(0, 0), (1, 0), (0, -1), (0, -2)],
-    [(0, 0), (-1, 0), (0, -1), (0, -2)],
-    [(0, 0), (0, 1), (1, 1), (1, 2)],
-    [(0, 0), (0, 1), (-1, 1), (-1, 2)],
-    [(0, 0), (0, -1), (1, -1), (1, -2)],
-    [(0, 0), (0, -1), (-1, -1), (-1, -2)],
 
-    # Gerade Blöcke
+    # Gerade Blöcke 2x
     [(0, 0), (1, 0)],
     [(0, 0), (0, 1)],
-    
-    # 2x2 Blöcke
+
+    # Gerade Blöcke 4x
+    [(0, 0), (1, 0), (2, 0), (3, 0)],  # Horizontal
+    [(0, 0), (0, 1), (0, 2), (0, 3)],  # Vertikal
+
+    # Gerade Blöcke 8x
+    [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0)],  # Horizontal
+    [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7)],  # Vertikal
+
+    # 2x2 Block
     [(0, 0), (1, 0), (0, 1), (1, 1)],
+
+    # 8x2 Blöcke
+    [(x, 0) for x in range(8)] + [(x, 1) for x in range(8)],  # Horizontal
+    [(0, y) for y in range(8)] + [(1, y) for y in range(8)],  # Vertikal
 ]
 
 
@@ -72,8 +67,8 @@ class SnakeEnv(gym.Env):
         self.direction = (1, 0)
         self.steps = 0
         self.score = 0
-        self.spawn_apple()
         self.generate_obstacles()
+        self.spawn_apple()
         self.done = False
         return self._get_obs(), {}
 
@@ -310,7 +305,7 @@ class SnakeEnv(gym.Env):
                     self.window,
                     OBSTACLE_COLOR,
                     pygame.Rect(ox * CELL_SIZE + OFFSET, oy * CELL_SIZE, CELL_SIZE, CELL_SIZE),
-                    border_radius=5,
+                    border_radius=0,
                 )
                 
         score_text = self.font.render(f"Score: {self.score}", True, (255, 255, 255))
