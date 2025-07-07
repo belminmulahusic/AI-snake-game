@@ -68,6 +68,7 @@ class SnakeEnv(gym.Env):
         self.snake = [(5, 5), (4, 5), (3, 5)]
         self.direction = (1, 0)
         self.steps = 0
+        self.steps_since_apple = 0
         self.score = 0
 
         self.action_history.clear()
@@ -181,9 +182,12 @@ class SnakeEnv(gym.Env):
 
         self.snake.insert(0, new_head)
         
+        self.steps_since_apple += 1
+        
         if new_head == self.apple:
             reward += 1.0
             self.score += 1
+            self.steps_since_apple = 0
             self.spawn_apple()
         else:
             self.snake.pop()
@@ -196,6 +200,9 @@ class SnakeEnv(gym.Env):
         if self.apple is None:
             self.done = True
             reward += 1.0
+
+        if self.steps_since_apple > 200:
+            self.done = True
 
         return self._get_obs(), reward, self.done, False, {}
 
