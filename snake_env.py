@@ -3,6 +3,7 @@ from gymnasium import spaces
 import numpy as np
 import pygame
 import random
+import collections
 
 CELL_SIZE = 30
 GRID_WIDTH, GRID_HEIGHT = 30, 30
@@ -45,7 +46,7 @@ class SnakeEnv(gym.Env):
 
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(
-            low=0, high=1, shape=(57,), dtype=np.float32
+            low=-1.0, high=1.0, shape=(182,), dtype=np.float32
         )
 
         self.render_mode = render_mode
@@ -55,6 +56,7 @@ class SnakeEnv(gym.Env):
         self.apple = None
         self.obstacles = []
         self.num_obstacles = num_obstacles
+        self.action_history = collections.deque(maxlen=3)
         self.apple_img = None
         self.snake_body_img = None
         self.snake_head_images = {}
@@ -67,6 +69,11 @@ class SnakeEnv(gym.Env):
         self.direction = (1, 0)
         self.steps = 0
         self.score = 0
+
+        self.action_history.clear()
+        for _ in range(self.action_history.maxlen):
+            self.action_history.append(-1)
+            
         self.generate_obstacles()
         self.spawn_apple()
         self.done = False
@@ -147,7 +154,8 @@ class SnakeEnv(gym.Env):
     def step(self, action):
         dir_map = {0: (0, -1), 1: (1, 0), 2: (0, 1), 3: (-1, 0)}
         new_direction = dir_map[action]
-
+        self.action_history.append(action)
+        
         # Kein Zurückgehen erlauben
         if (new_direction[0] * -1, new_direction[1] * -1) == self.direction and len(
             self.snake
@@ -230,8 +238,8 @@ class SnakeEnv(gym.Env):
         snake_length_vec = np.array([snake_length_norm], dtype=np.float32)
         
         fov = []
-        for dy in [-1, 0, 1, -2, 2, -3, 3]:
-            for dx in [-1, 0, 1, -2, 2, -3, 3]:
+        for dy in [-1, 0, 1, -2, 2, -3, 3, -4, 4, -5, 5, -6, 6]:
+            for dx in [-1, 0, 1, -2, 2, -3, 3, -4, 4, -5, 5, -6, 6]:
                 if dx == 0 and dy == 0:
                     continue 
                 
@@ -248,8 +256,16 @@ class SnakeEnv(gym.Env):
 
         fov_vec = np.array(fov, dtype=np.float32)
         
-        obs = np.concatenate((dir_vec, food_vec, snake_length_vec, fov_vec))
-        return obs
+        apple_dist_vec = np.zeros(2, dtype=np.float32)
+        if self.apple:
+            apple_dist_vec = np.array([
+                (self.apple[0] - head[0]) / GRID_WIDTH,
+                (self.apple[1] - head[1]) / GRID_HEIGHT
+            ], dtype=np.float32)
+
+        action_history_vec = np.array(list(self.action_history), dtype=np.float32) / (self.action_space.n -1)
+        obs = np.concatenate((dir_vec, food_vec, snake_length_vec, fov_vec, apple_dist_vec, action_history_vec))
+        return obs.astype(np.float32)
 
     def render(self, game_mode):
         if self.render_mode != "human":
