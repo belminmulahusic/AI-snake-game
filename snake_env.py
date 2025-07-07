@@ -60,6 +60,9 @@ class SnakeEnv(gym.Env):
         self.apple = None
         self.obstacles = []
         self.num_obstacles = num_obstacles
+        self.apple_img = None
+        self.snake_body_img = None
+        self.snake_head_images = {}
         self.reset()
 
 
@@ -219,18 +222,6 @@ class SnakeEnv(gym.Env):
             self.direction == (-1, 0),
         ], dtype=np.float32)
 
-#        up = (head[0], head[1] - 1)
-#        right = (head[0] + 1, head[1])
-#        down = (head[0], head[1] + 1)
-#        left = (head[0] - 1, head[1])
-#        
-#        danger_vec = np.array([
-#            self._is_collision(up),
-#            self._is_collision(right),
-#            self._is_collision(down),
-#            self._is_collision(left),
-#        ], dtype=np.float32)
-
         if self.apple is not None:
             food_vec = np.array([
                 self.apple[1] < head[1],
@@ -278,26 +269,40 @@ class SnakeEnv(gym.Env):
             except FileNotFoundError:
                 self.font = pygame.font.SysFont("arial", 30)
 
+            try:
+                self.apple_img = pygame.image.load("assets/apple.png").convert_alpha()
+                self.snake_body_img = pygame.image.load("assets/snake_body.png").convert_alpha()
+                head_original = pygame.image.load("assets/snake_head.png").convert_alpha()
+                
+                self.snake_head_images = {
+                    (0, -1): head_original,
+                    (1, 0): pygame.transform.rotate(head_original, -90),
+                    (0, 1): pygame.transform.rotate(head_original, 180),
+                    (-1, 0): pygame.transform.rotate(head_original, 90)
+                }
+            except pygame.error as e:
+                print(f"Fehler beim Laden der Bilder: {e}")
+                self.close()
+                return
+
         self.window.fill((53, 53, 53))
         pygame.draw.rect(self.window, (64, 64, 64), pygame.Rect(0, 0, OFFSET, SCREEN_HEIGHT))
         pygame.draw.rect(self.window, (48, 48, 48), pygame.Rect(OFFSET-20, 0, 20, SCREEN_HEIGHT))
 
-        for x, y in self.snake:
-            pygame.draw.rect(
-                self.window,
-                (120, 209, 142),
-                pygame.Rect(x * CELL_SIZE + OFFSET, y * CELL_SIZE, CELL_SIZE, CELL_SIZE),
-                border_radius=10,
-            )
+        for i, (x, y) in enumerate(self.snake):
+            rect = pygame.Rect(x * CELL_SIZE + OFFSET, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+            if i == 0:
+                head_img = self.snake_head_images.get(self.direction)
+                if head_img:
+                    self.window.blit(head_img, rect)
+            else:
+                if self.snake_body_img:
+                    self.window.blit(self.snake_body_img, rect)
 
-        if self.apple:
+        if self.apple and self.apple_img:
             ax, ay = self.apple
-            pygame.draw.rect(
-                self.window,
-                (255, 80, 80),
-                pygame.Rect(ax * CELL_SIZE + OFFSET, ay * CELL_SIZE, CELL_SIZE, CELL_SIZE),
-                border_radius=15,
-            )
+            rect = pygame.Rect(ax * CELL_SIZE + OFFSET, ay * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+            self.window.blit(self.apple_img, rect)
 
         for obstacle_blocks in self.obstacles:
             for ox, oy in obstacle_blocks:

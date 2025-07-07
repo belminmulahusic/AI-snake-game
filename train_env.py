@@ -19,6 +19,6 @@ model = DQN(
     verbose=1,
 )
 
-model.learn(total_timesteps=500000)
+model.learn(total_timesteps=10000)
 model.save("dqn_snake_model")
 env.close()
