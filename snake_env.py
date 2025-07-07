@@ -4,8 +4,8 @@ import numpy as np
 import pygame
 import random
 
-CELL_SIZE = 20
-GRID_WIDTH, GRID_HEIGHT = 40, 40
+CELL_SIZE = 30
+GRID_WIDTH, GRID_HEIGHT = 30, 30
 
 SCREEN_WIDTH = CELL_SIZE * GRID_WIDTH
 SCREEN_HEIGHT = CELL_SIZE * GRID_HEIGHT
@@ -265,10 +265,14 @@ class SnakeEnv(gym.Env):
                 self.font = pygame.font.SysFont("arial", 30)
 
             try:
-                self.apple_img = pygame.image.load("assets/apple.png").convert_alpha()
-                self.snake_body_img = pygame.image.load("assets/snake_body.png").convert_alpha()
-                head_original = pygame.image.load("assets/snake_head.png").convert_alpha()
-                
+                apple_unscaled = pygame.image.load("assets/apple.png").convert_alpha()
+                body_unscaled = pygame.image.load("assets/snake_body.png").convert_alpha()
+                head_unscaled = pygame.image.load("assets/snake_head.png").convert_alpha()
+
+                self.apple_img = pygame.transform.scale(apple_unscaled, (CELL_SIZE, CELL_SIZE))
+                self.snake_body_img = pygame.transform.scale(body_unscaled, (CELL_SIZE, CELL_SIZE))
+                head_original = pygame.transform.scale(head_unscaled, (CELL_SIZE, CELL_SIZE))
+
                 self.snake_head_images = {
                     (0, -1): head_original,
                     (1, 0): pygame.transform.rotate(head_original, -90),
