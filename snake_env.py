@@ -202,7 +202,7 @@ class SnakeEnv(gym.Env):
             reward += 1.0
 
         if self.steps_since_apple > 200:
-            self.done = True
+            return self._get_obs(), -1.0, False, True, {}
 
         return self._get_obs(), reward, self.done, False, {}
 
