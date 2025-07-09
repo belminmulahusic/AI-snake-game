@@ -116,25 +116,15 @@ def evaluate_model(model_path, num_episodes=50, render=False, show_q_values=Fals
     if show_dqn:
         print(model.q_net)
         
-    window_size = int(num_episodes / 10)
-    scores_ma = pd.Series(scores_np).rolling(window=window_size, min_periods=window_size).mean()
-    steps_ma = pd.Series(steps_np).rolling(window=window_size, min_periods=window_size).mean()
 
 
-    plt.figure(figsize=(15, 10))
+    plt.figure(figsize=(12, 5))
 
-    plt.subplot(2, 2, 1)
+    plt.subplot(1, 2, 1)
     plt.hist(scores_np, bins=15, color='pink', edgecolor='black')
     plt.title('Score-Verteilung')
     plt.xlabel('Score')
     plt.ylabel('Anzahl der Episoden')
-
-    plt.subplot(2, 2, 2)
-    plt.plot(range(1, valid_episodes + 1), scores_ma, color='red', linestyle='-', linewidth=2, label=f'Mittelwert')
-    plt.title('Score-Verlauf pro Episode')
-    plt.xlabel('Episode')
-    plt.ylabel('Score')
-    plt.legend()
 
     max_len = max(len(x) for x in max_qs_all) if max_qs_all else 0
     if max_len > 0:
@@ -144,24 +134,17 @@ def evaluate_model(model_path, num_episodes=50, render=False, show_q_values=Fals
         avg_max_qs = np.nanmean(max_qs_arr, axis=0)
         avg_std_qs = np.nanmean(std_qs_arr, axis=0)
 
-        plt.subplot(2, 2, 3)
+        plt.subplot(1, 2, 2)
         plt.plot(avg_max_qs, label='Durchschnittlicher Max Q-Wert')
         plt.plot(avg_std_qs, label='Durchschnittliche Std. Abw.')
         plt.title('Q-Wert Metriken im Verlauf')
         plt.xlabel('Schritt')
         plt.ylabel('Q-Wert')
         plt.legend()
-
-
-    plt.subplot(2, 2, 4)
-    plt.plot(range(1, valid_episodes + 1), steps_ma, color='darkgreen', linestyle='-', linewidth=2, label=f'Mittelwert')
-    plt.title('Schritte pro Episode')
-    plt.xlabel('Episode')
-    plt.ylabel('Anzahl der Schritte')
-    plt.legend()
-
+    
     plt.tight_layout()
     plt.savefig("evaluation_combined.png")
+
 
 
 if __name__ == "__main__":
