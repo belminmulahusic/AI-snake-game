@@ -40,9 +40,9 @@ OBSTACLE_PATTERNS = [
 
 
 class SnakeEnv(gym.Env):
-    metadata = {"render_modes": ["human"], "render_fps": 10}
+    metadata = {"render_modes": ["human"], "render_fps": 8}
 
-    def __init__(self, render_mode=None, num_obstacles=8):
+    def __init__(self, render_mode=None, num_obstacles=8, render_fps=8):
         super(SnakeEnv, self).__init__()
 
         self.action_space = spaces.Discrete(3)
@@ -50,6 +50,7 @@ class SnakeEnv(gym.Env):
             low=-1.0, high=1.0, shape=(182,), dtype=np.float32
         )
 
+        self.metadata["render_fps"] = render_fps
         self.render_mode = render_mode
         self.window = None
         self.clock = None
