@@ -1,3 +1,11 @@
+##################################################################
+#                                                                #
+#   Die snake_env.py ist das Herzstück unseres Projekts.         #
+#   Hier werden alle wichtigen Aspekte für das Reinforcement     #
+#   Learning bereitgestellt.                                     #
+#                                                                #
+##################################################################
+
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
