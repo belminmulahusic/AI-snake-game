@@ -1,3 +1,10 @@
+##################################################################
+#                                                                #
+#   Die train_env.py wird benutzt um den Agenten mit der         #
+#   Stable-baselines3 Bibliothek zu trainieren.                  #
+#                                                                #
+##################################################################
+
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3 import DQN
 from snake_env import SnakeEnv

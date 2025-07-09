@@ -1,6 +1,6 @@
 ##################################################################
 #                                                                #
-#   (Veraltet) Die ist die erste Version des Spiels.             #
+#   (Veraltet) Dies ist die erste Version des Spiels.            #
 #   Die main.py wurde nur Aufgrund von Aufgabe 1 erstellt        #
 #                                                                #
 ##################################################################

@@ -49,7 +49,7 @@ def play():
                 if event.key == pygame.K_SPACE:
                     use_ai = not use_ai
                 
-                # Manuelle Steuerung nur
+                # Manuelle Steuerung
                 if not use_ai and not direction_changed_this_frame:
                     current_direction = env.direction
                     
