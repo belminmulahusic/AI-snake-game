@@ -101,6 +101,18 @@ def evaluate_model(model_path, num_episodes=50, render=False, show_q_values=Fals
     print(f"Anzahl valider Episoden: {valid_episodes}")
     print(f"Anzahl von Schleifen: {loop_count}")
     
+
+    with open("evaluation.txt", "w", encoding="utf-8") as f:
+        f.write("--- Auswertung ---\n")
+        f.write(f"Durchschnittlicher Score: {np.mean(scores_np):.2f}\n")
+        f.write(f"Median Score: {np.median(scores_np):.2f}\n")
+        f.write(f"Standardabweichung: {np.std(scores_np):.2f}\n")
+        f.write(f"Höchster Score: {np.max(scores_np)}\n")
+        f.write(f"Niedrigster Score: {np.min(scores_np)}\n")
+        f.write(f"Durchschnittliche Schritte: {np.mean(steps_np):.2f}\n")
+        f.write(f"Anzahl valider Episoden: {valid_episodes}\n")
+        f.write(f"Anzahl von Schleifen: {loop_count}\n")
+    
     if show_dqn:
         print(model.q_net)
         
@@ -139,7 +151,7 @@ def evaluate_model(model_path, num_episodes=50, render=False, show_q_values=Fals
         plt.ylabel('Q-Wert')
         plt.legend()
 
-    # Plot 4: Schritte pro Episode (geglättet)
+
     plt.subplot(2, 2, 4)
     plt.plot(range(1, valid_episodes + 1), steps_ma, color='darkgreen', linestyle='-', linewidth=2, label=f'Mittelwert')
     plt.title('Schritte pro Episode')
