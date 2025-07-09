@@ -117,8 +117,9 @@ def evaluate_model(model_path, num_episodes=50, render=False, show_q_values=Fals
         print(model.q_net)
         
     window_size = int(num_episodes / 10)
-    scores_ma = pd.Series(scores_np).rolling(window=window_size, min_periods=1).mean()
-    steps_ma = pd.Series(steps_np).rolling(window=window_size, min_periods=1).mean()
+    scores_ma = pd.Series(scores_np).rolling(window=window_size, min_periods=window_size).mean()
+    steps_ma = pd.Series(steps_np).rolling(window=window_size, min_periods=window_size).mean()
+
 
     plt.figure(figsize=(15, 10))
 
