@@ -13,6 +13,7 @@ SCREEN_HEIGHT = CELL_SIZE * GRID_HEIGHT
 OFFSET = 260
 FONT_PATH = "assets/VCR_OSD_MONO_1.001.ttf"
 
+DIRECTIONS = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 OBSTACLE_COLOR = (100, 100, 100) 
 
 OBSTACLE_PATTERNS = [
@@ -44,7 +45,7 @@ class SnakeEnv(gym.Env):
     def __init__(self, render_mode=None, num_obstacles=8):
         super(SnakeEnv, self).__init__()
 
-        self.action_space = spaces.Discrete(4)
+        self.action_space = spaces.Discrete(3)
         self.observation_space = spaces.Box(
             low=-1.0, high=1.0, shape=(182,), dtype=np.float32
         )
@@ -153,17 +154,16 @@ class SnakeEnv(gym.Env):
 
 
     def step(self, action):
-        dir_map = {0: (0, -1), 1: (1, 0), 2: (0, 1), 3: (-1, 0)}
-        new_direction = dir_map[action]
+
+        direction_index = DIRECTIONS.index(self.direction)
+        if action == 0:
+            new_direction_index = direction_index
+        elif action == 1:
+            new_direction_index = (direction_index - 1) % 4
+        elif action == 2:
+            new_direction_index = (direction_index + 1) % 4
+        self.direction = DIRECTIONS[new_direction_index]
         self.action_history.append(action)
-        
-        # Kein Zurückgehen erlauben
-        if (new_direction[0] * -1, new_direction[1] * -1) == self.direction and len(
-            self.snake
-        ) > 1:
-            new_direction = self.direction
-        else:
-            self.direction = new_direction
 
         head = self.snake[0]
         new_head = (head[0] + self.direction[0], head[1] + self.direction[1])
@@ -201,8 +201,8 @@ class SnakeEnv(gym.Env):
             self.done = True
             reward += 1.0
 
-        if self.steps_since_apple > 200:
-            self.done = True
+        if self.steps_since_apple > 500:
+            return self._get_obs(), -1.0, False, True, {}
 
         return self._get_obs(), reward, self.done, False, {}
 

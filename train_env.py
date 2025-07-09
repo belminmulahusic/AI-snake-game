@@ -13,8 +13,6 @@ if __name__ == "__main__":
         buffer_size=1_000_000,
         learning_starts=200_000,
         batch_size=64,
-        train_freq=4,
-        gradient_steps=1,
         target_update_interval=20_000,
         exploration_fraction=0.2,
         exploration_final_eps=0.02,
