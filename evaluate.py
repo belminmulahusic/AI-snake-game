@@ -75,7 +75,7 @@ def evaluate_model(model_path, num_episodes=50, render=False, show_q_values=Fals
     loop_count = 0
 
     for episode in range(num_episodes):
-        env = SnakeEnv(render_mode="human" if render else None, game_mode="None")
+        env = SnakeEnv(render_mode="human" if render else None)
         obs, info = env.reset()
         done = False
         truncated = False
@@ -119,7 +119,7 @@ def evaluate_model(model_path, num_episodes=50, render=False, show_q_values=Fals
         std_qs_all.append(std_qs)
         
         print(f"Final Score = {env.score}, Schritte = {steps}")
-        env.close()
+        env.close(game_mode="None")
 
     if valid_episodes == 0:
         print("\nKeine validen Episoden zum Auswerten.")
