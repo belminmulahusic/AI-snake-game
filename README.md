@@ -50,7 +50,7 @@ python train_env.py
 ### Modell evaluieren
 
 ```bash
-python evaluate.py dqn_snake_model.zip --episodes 50 --render -q --dqn
+python evaluate.py dqn_snake_model.zip --episodes 50 --render -q -dqn
 ```
 
 - Bewertet das Modell über eine definierte Anzahl an Episoden
