@@ -1,0 +1,9 @@
+--- Auswertung ---
+Durchschnittlicher Score: 51.77
+Median Score: 51.00
+Standardabweichung: 14.63
+Höchster Score: 110
+Niedrigster Score: 7
+Durchschnittliche Schritte: 1262.38
+Anzahl valider Episoden: 9934
+Anzahl von Schleifen: 66
