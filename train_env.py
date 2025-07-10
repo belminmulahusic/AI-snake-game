@@ -30,12 +30,12 @@ if __name__ == "__main__":
         exploration_fraction=0.2,
         exploration_final_eps=0.02,
         verbose=1,
-        tensorboard_log="./dqn_snake_tensorboard_182_10m/"
+        tensorboard_log="./dqn_snake_tensorboard/"
     )
 
 
     model.learn(total_timesteps=10_000_000, log_interval=4) 
     
     print("Training für 10 Millionen Schritte abgeschlossen. Speichere das Modell...")
-    model.save("dqn_snake_model_182_10m")
+    model.save("dqn_snake_model")
     env.close()
