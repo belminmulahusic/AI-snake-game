@@ -1,6 +1,6 @@
 # Snake Reinforcement Learning
 
-Dieses Projekt implementiert das klassische Snake-Spiel in Python und integriert es in eine eigene Reinforcement-Learning-Umgebung basierend auf [Gymnasium](https://github.com/Farama-Foundation/Gymnasium). Mittels [stable-baselines3](https://github.com/DLR-RM/stable-baselines3) kann ein Agent mit Deep Q-Learning (DQN) trainiert werden. Die Dokumentation des Projekts ist nicht direkt im Wiki, sondern in der X.pdf zu finden.
+Dieses Projekt implementiert das klassische Snake-Spiel in Python und integriert es in eine eigene Reinforcement-Learning-Umgebung basierend auf [Gymnasium](https://github.com/Farama-Foundation/Gymnasium). Mittels [stable-baselines3](https://github.com/DLR-RM/stable-baselines3) kann ein Agent mit Deep Q-Learning (DQN) trainiert werden. Die Dokumentation des Projekts ist nicht direkt im Wiki, sondern in der Dokumentation.pdf zu finden.
 
 ## Voraussetzungen & Installation
 
@@ -20,6 +20,7 @@ gymnasium==1.1.1
 numpy==2.1.3
 pygame==2.5.2
 stable_baselines3==2.6.0
+tensorboard==2.19.0
 ```
 
 ### Spiel starten
