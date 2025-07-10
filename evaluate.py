@@ -75,7 +75,7 @@ def evaluate_model(model_path, num_episodes=50, render=False, show_q_values=Fals
     loop_count = 0
 
     for episode in range(num_episodes):
-        env = SnakeEnv(render_mode="human" if render else None)
+        env = SnakeEnv(render_mode="human" if render else None, game_mode="None")
         obs, info = env.reset()
         done = False
         truncated = False
