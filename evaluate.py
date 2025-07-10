@@ -103,7 +103,7 @@ def evaluate_model(model_path, num_episodes=50, render=False, show_q_values=Fals
                 print("--------------------------------------------------------------------")
 
             if render:
-                env.render()
+                env.render(game_mode="None")
 
         # Abbruch durch Loop erkennen (Siehe Ausarbeitung -> Evaluation)
         if truncated:
@@ -119,7 +119,7 @@ def evaluate_model(model_path, num_episodes=50, render=False, show_q_values=Fals
         std_qs_all.append(std_qs)
         
         print(f"Final Score = {env.score}, Schritte = {steps}")
-        env.close(game_mode="None")
+        env.close()
 
     if valid_episodes == 0:
         print("\nKeine validen Episoden zum Auswerten.")
