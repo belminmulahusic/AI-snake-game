@@ -1,11 +1,24 @@
+##################################################################
+#                                                                #
+#   Die train_env.py wird benutzt um den Agenten mit der         #
+#   Stable-baselines3 Bibliothek zu trainieren.                  #
+#                                                                #
+##################################################################
+
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3 import DQN
 from snake_env import SnakeEnv
 
+# Hauptfunktion zum Trainieren eines DQN-Agenten auf der Snake-Umgebung.
+# Erstellt die Umgebung, überprüft ihre Kompatibilität, initialisiert das Modell
+# mit spezifischen Hyperparametern, führt das Training durch und speichert das Ergebnis.
 if __name__ == "__main__":
+    
     env = SnakeEnv()
+    # Überprüft, ob die Umgebung den Anforderungen von Gymnasium entspricht
     check_env(env)
     
+    # Erstellt ein DQN-Modell mit den angegebenen Hyperparametern
     model = DQN(
         "MlpPolicy",
         env,

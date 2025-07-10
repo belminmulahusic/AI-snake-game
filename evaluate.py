@@ -1,3 +1,11 @@
+##################################################################
+#                                                                #
+#   Die evaluate.py übernimmt die Evaluation des DQN-Agenten.    #
+#   Die Ergebnisse können in der Konsole ausgelesen werden       #
+#                                                                #
+##################################################################
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -12,23 +20,51 @@ ACTION_NAMES = {
     2: "Rechts"
 }
 
+
+# Gibt die Q-Werte für eine gegebene Beobachtung zurück
+# Parameter:
+#   model (DQN): Das geladene DQN-Modell
+#   obs (np.array): Beobachtungsraum
+# Return:
+#   np.array: Q-Werte für alle Aktionen
 def get_q_values(model, obs):
     obs_tensor = torch.tensor(obs, dtype=torch.float32).unsqueeze(0).to(model.device)
     with torch.no_grad():
         q_values = model.q_net(obs_tensor)
     return q_values.cpu().numpy()[0]
 
+
+# Analysiert Q-Werte: Berechnet Maximalwert und Standardabweichung
+# Parameter:
+#   q_values (np.array): Array der Q-Werte
+# Return:
+#   Tuple(float, float): max Q-Wert, Standardabweichung der Q-Werte
 def analyze_q_values(q_values):
     max_q = np.max(q_values)
     std_q = np.std(q_values)
     return max_q, std_q
 
+
+# Füllt kürzere Listen mit NaN auf (Damit man die Daten leichter vergleichen kann)
+# Parameter:
+#   lists (List[List[float]]): Liste von Q-Wert-Listen verschiedener Episoden
+#   max_len (int): Länge der längsten Liste
+# Return:
+#   np.array: 2D-Array mit aufgefüllten Werten
 def pad_and_stack(lists, max_len):
     arr = np.full((len(lists), max_len), np.nan)
     for i, lst in enumerate(lists):
         arr[i, :len(lst)] = lst
     return arr
 
+
+# Führt die Evaluation des DQN-Modells durch
+# Parameter:
+#   model_path (str): Pfad zum gespeicherten Modell
+#   num_episodes (int): Anzahl der Episoden
+#   render (bool): Ob das Spiel gerendert werden soll
+#   show_q_values (bool): Ob Q-Werte bei jedem Schritt ausgegeben werden sollen
+#   show_dqn (bool): Ob die DQN-Netzwerkarchitektur ausgegeben werdn soll
 def evaluate_model(model_path, num_episodes=50, render=False, show_q_values=False, show_dqn=False):
     model = DQN.load(model_path)
     scores = []
@@ -69,6 +105,7 @@ def evaluate_model(model_path, num_episodes=50, render=False, show_q_values=Fals
             if render:
                 env.render()
 
+        # Abbruch durch Loop erkennen (Siehe Ausarbeitung -> Evaluation)
         if truncated:
             print(f"Episode {episode + 1} abgebrochen aufgrund einer Dauerschleife")
             loop_count += 1
@@ -91,6 +128,7 @@ def evaluate_model(model_path, num_episodes=50, render=False, show_q_values=Fals
     scores_np = np.array(scores)
     steps_np = np.array(steps_per_game)
 
+    # Statistische Auswertung der Ergebnisse
     print("\n--- Auswertung ---")
     print(f"Durchschnittlicher Score: {np.mean(scores_np):.2f}")
     print(f"Median Score: {np.median(scores_np):.2f}")
@@ -101,7 +139,7 @@ def evaluate_model(model_path, num_episodes=50, render=False, show_q_values=Fals
     print(f"Anzahl valider Episoden: {valid_episodes}")
     print(f"Anzahl von Schleifen: {loop_count}")
     
-
+    # Ergebnisse in Textdatei speichern
     with open("evaluation.txt", "w", encoding="utf-8") as f:
         f.write("--- Auswertung ---\n")
         f.write(f"Durchschnittlicher Score: {np.mean(scores_np):.2f}\n")
@@ -113,11 +151,12 @@ def evaluate_model(model_path, num_episodes=50, render=False, show_q_values=Fals
         f.write(f"Anzahl valider Episoden: {valid_episodes}\n")
         f.write(f"Anzahl von Schleifen: {loop_count}\n")
     
+    # Architektur des DQN-Netzes ausgeben
     if show_dqn:
         print(model.q_net)
         
 
-
+    # Plots erstellen und speichern
     plt.figure(figsize=(12, 5))
 
     plt.subplot(1, 2, 1)

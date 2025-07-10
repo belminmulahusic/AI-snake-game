@@ -1,3 +1,10 @@
+##################################################################
+#                                                                #
+#   (Veraltet) Dies ist die erste Version des Spiels.            #
+#   Die main.py wurde nur Aufgrund von Aufgabe 1 erstellt        #
+#                                                                #
+##################################################################
+
 import pygame
 import sys
 
@@ -23,14 +30,25 @@ snake = [(5, 5), (4, 5), (3, 5)]
 direction = (1, 0)
 score = 0
 
+# Fixe Apfel Positionen (Aufgabe 1)
 apples_queue = [(33, 5), (15, 10), (7, 3), (20, 15), (5, 12)]
 current_apple = apples_queue.pop(0)
 
+
+
+# Zeichnet eine einzelne Zelle an der Position mit der Farbe
+# Parameter:
+#   pos (tuple): (x, y) Koordinate der Zelle
+#   color (tuple): RGB-Farbwert
 def draw_cell(pos, color):
     x, y = pos
     rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
     pygame.draw.rect(screen, color, rect, border_radius=12)
 
+
+# Beendet das Spiel und zeigt eine Nachricht an
+# Parameter:
+#   message (str): Text für die NAchricht
 def game_end(message):
     screen.fill(BLACK)
     msg = font.render(message, True, WHITE)
@@ -40,12 +58,15 @@ def game_end(message):
     pygame.quit()
     sys.exit()
 
+
+# Hauptspiel-Schleife
 running = True
 while running:
     clock.tick(FPS)
     screen.fill(BLACK)
     direction_changed = False
 
+    # Steuerung
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -66,6 +87,7 @@ while running:
 
     new_head = (snake[0][0] + direction[0], snake[0][1] + direction[1])
 
+    # Kollision wird geprüft
     if (
         new_head in snake
         or new_head[0] < 0 or new_head[0] >= GRID_WIDTH
@@ -84,16 +106,18 @@ while running:
 
     snake.insert(0, new_head)
 
+    # Gewinnbedingung
     if current_apple is None:
         game_end(f"Gewonnen! Alle Äpfel gegessen. Punkte: {score}")
 
+    # Schlange und Apfel zeichnen
     for segment in snake:
         draw_cell(segment, GREEN)
 
     if current_apple:
         draw_cell(current_apple, RED)
 
-
+    # Punktestand anzeigen
     text = font.render(f"Punkte: {score}", True, WHITE)
     screen.blit(text, (10, 10))
 
