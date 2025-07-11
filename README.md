@@ -31,7 +31,7 @@ python game.py
 
 - Starte das  Spielmenü
 - Im Menü:
-  - **Play**: Manuell spielbares Snake-Spiel
+  - **Play**: Manuell spielbares Snake-Spiel (WASD-Steuerung)
   - **Run AI Model**: DQN-Modell spielt automatisch eine Runde
 
 ### Training
